@@ -1,7 +1,8 @@
 import os, glob, torch
 from ultralytics import YOLO
 from roboflow import Roboflow
-from huggingface_hub import HfApi
+from huggingface_hub import HfApi, hf_hub_download, model_info
+from huggingface_hub.utils import HfHubHTTPError
 
 # ---------------- NVIDIA optimization switches ----------------
 torch.backends.cudnn.benchmark = True
@@ -14,49 +15,78 @@ if hasattr(torch.backends.cuda, "enable_flash_sdp"):
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# ---------------- Roboflow dataset (Stage 1) ----------------
-name = "leaf_stage1"
-api_key = os.getenv("RF_TOKEN")
-rf = Roboflow(api_key=api_key)
+# ---------------- ENV + API ----------------
+HF_TOKEN = os.getenv("HF_TOKEN")
+HF_REPO = os.getenv("HF_REPO")
 
+if HF_TOKEN and HF_REPO:
+  api = HfApi(token=HF_TOKEN)
+
+  # ---------------- Check for pretrained model ----------------
+  skip_stage1 = False
+  try:
+      info = model_info(HF_REPO, token=HF_TOKEN)
+      weights_present = any(f.rfilename.endswith(".pt") for f in info.siblings)
+      if weights_present:
+          print(f"⚡ Found pretrained weights in {HF_REPO}, skipping Stage 1 training.")
+          skip_stage1 = True
+          # Download best weights to local path
+          stage1_best = hf_hub_download(repo_id=HF_REPO, filename="best.pt", token=HF_TOKEN)
+  except HfHubHTTPError:
+      print("ℹ️ No pretrained model found on Hugging Face — running Stage 1 training.")
+else:
+    print("Cannot proceed without Hugging Face token and repository ID.")
+# ---------------- Roboflow dataset ----------------
+rf = Roboflow(api_key=os.getenv("RF_TOKEN"))
 workspace = "my-argiculture"
 project_name = "leaf_dataset-aejj3"
 project = rf.workspace(workspace).project(project_name)
-version = project.version(3)
-dataset = version.download("yolov9")
 
-STAGE1_DATA_YAML = f"{dataset.location}/data.yaml"
+# ---------------- Stage 1 ----------------
+if not skip_stage1:
+    name = "leaf_stage1"
+    version = project.version(3)
+    dataset = version.download("yolov9")
+    STAGE1_DATA_YAML = f"{dataset.location}/data.yaml"
 
-# ---------------- Train RT-DETR (Stage 1) ----------------
-model_name = os.getenv("MODEL_NAME", "rtdetr-l")
-model = YOLO(f"{model_name}.pt")  # fixed variable reference
+    model_name = os.getenv("MODEL_NAME", "rtdetr-l")
+    model = YOLO(f"{model_name}.pt")
 
-model.train(
-    data=STAGE1_DATA_YAML,
-    imgsz=700,
-    epochs=80,
-    lr0=1e-3,
-    optimizer="AdamW",
-    cos_lr=True,
-    patience=10,
-    amp=True,
-    batch=-1,
-    degrees=180,
-    flipud=0.5,
-    fliplr=0.5,
-    hsv_h=0.015, hsv_s=0.7, hsv_v=0.4,
-    mosaic=0.0, copy_paste=0.0, mixup=0.0,
-    weight_decay=0.05,
-    project="runs",
-    name=name,
-    pretrained=True,
-    val=True
-)
+    model.train(
+        data=STAGE1_DATA_YAML,
+        imgsz=700,
+        epochs=80,
+        lr0=1e-3,
+        optimizer="AdamW",
+        cos_lr=True,
+        patience=10,
+        amp=True,
+        batch=-1,
+        degrees=180,
+        flipud=0.5,
+        fliplr=0.5,
+        hsv_h=0.015, hsv_s=0.7, hsv_v=0.4,
+        mosaic=0.0, copy_paste=0.0, mixup=0.0,
+        weight_decay=0.05,
+        project="runs",
+        name=name,
+        pretrained=True,
+        val=True
+    )
 
-PATH = f"runs/{name}/weights/stage1_{model_name}.pt"
-torch.save(model.model.state_dict(), PATH)  # must use model.model for YOLOv9 objects
+    stage1_best = f"runs/{name}/weights/best.pt"
+    torch.save(model.model.state_dict(), f"runs/{name}/weights/stage1_{model_name}.pt")
 
-# ---------------- Train RT-DETR (Stage 2) ----------------
+    # Upload to HF
+    api.upload_folder(
+        folder_path=f"runs/{name}/weights",
+        repo_id=HF_REPO,
+        repo_type="model",
+        token=HF_TOKEN,
+    )
+    print(f"✅ Stage 1 model uploaded to https://huggingface.co/{HF_REPO}")
+
+# ---------------- Stage 2 ----------------
 version = project.version(4)
 dataset = version.download("yolov9")
 
@@ -86,10 +116,7 @@ for split in splits:
 
     print(f"✅ [{split}] Kept {len(context_names)} CONTEXTIMG_* files. Deleted {deleted_count} others.")
 
-stage1_best = os.path.join(os.getcwd(), f"runs/{name}/weights/best.pt")
 STAGE2_DATA_YAML = os.path.join(dataset.location, "data.yaml")
-
-# Fixed env variable parsing
 freeze = int(os.getenv("FREEZE_LAYERS", 10))
 epochs = int(os.getenv("EPOCHS", 30))
 batch = int(os.getenv("BATCH", 4))
@@ -126,18 +153,4 @@ model.train(
 
 # ---------------- Export model ----------------
 model.export(format="onnx", dynamic=True)
-
-# ---------------- Upload to Hugging Face ----------------
-HF_TOKEN = os.getenv("HF_TOKEN")
-HF_REPO = os.getenv("HF_REPO")  # fixed os.env → os.getenv
-
-api = HfApi(token=HF_TOKEN)
-api.upload_folder(
-    folder_path="runs/leaf_stage1/weights",
-    repo_id=HF_REPO,
-    repo_type="model",
-    token=HF_TOKEN,
-)
-print(f"✅ Model uploaded to https://huggingface.co/{HF_REPO}")
-
 torch.cuda.empty_cache()
