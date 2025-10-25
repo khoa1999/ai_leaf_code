@@ -1,28 +1,77 @@
-# Python cache and build artifacts
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*.egg-info/
-*.eggs/
-*.manifest
-*.spec
+*$py.class
 
-# Virtual environments
-.env
-.venv
-venv/
-ENV/
+# C extensions
+*.so
 
 # Distribution / packaging
+.Python
 build/
 dist/
+*.egg-info/
+.eggs/
+wheelhouse/
+pip-wheel-metadata/
+
+# Virtual environments
+.venv/
+.env/
+venv/
+ENV/
+.envrc
+
+# Unit test / coverage reports
+.pytest_cache/
+.coverage*
+htmlcov/
+
+# Static type checker caches
+.mypy_cache/
+.pyre/
+.pytype/
+.ruff_cache/
+
+# Logs
+logs/
+*.log
+
+# IDE / Editor directories and files
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
 
 # Jupyter and IPython
 .ipynb_checkpoints/
 
-# Logs
-*.log
+# Machine learning artifacts
+runs/
+wandb/
+mlruns/
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.safetensors
+*.mlmodel
 
-# IDE settings
-.vscode/
-.idea/
-.DS_Store
+# Dataset downloads and cache
+cache/
+.cache/
+data/
+datasets/
+*.zip
+*.tar
+*.tar.gz
+
+# Hugging Face / Roboflow metadata
+hf_cache/
+roboflow/
+
+# Local credentials or keys
+.env.local
+.secret
+*.token
