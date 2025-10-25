@@ -86,13 +86,13 @@ model = YOLO(stage1_best)
 model.train(
   data=STAGE2_DATA_YAML,   # <-- TRAIN = context-only
   imgsz=1280,
-  epochs=20,
+  epochs=30,
   lr0=5e-5,                # 0.05× of Stage 1
   optimizer="AdamW",
   cos_lr=True,
   patience=8,
   amp=True,
-  batch=2,
+  batch=4,
   weight_decay=0.005,      #allow remmbering,
   # scene-typical, light global augs:
   # mosaic=0.15, copy_paste=0.4, mixup=0.05,
