@@ -1,0 +1,28 @@
+# Python cache and build artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.eggs/
+*.manifest
+*.spec
+
+# Virtual environments
+.env
+.venv
+venv/
+ENV/
+
+# Distribution / packaging
+build/
+dist/
+
+# Jupyter and IPython
+.ipynb_checkpoints/
+
+# Logs
+*.log
+
+# IDE settings
+.vscode/
+.idea/
+.DS_Store
