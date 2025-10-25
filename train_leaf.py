@@ -18,7 +18,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 name =  "leaf_stage1"
 api_key = os.getenv("RF_TOKEN")
 rf = Roboflow(api_key)
-project = rf.workspace("my-argiculture").project("leaf_dataset-aejj3")
+workspace =  "my-argiculture"
+project_name =  "leaf_dataset-aejj3"
+project = rf.workspace(workspace).project(project_name)
 version = project.version(3)
 dataset = version.download("yolov9")
 STAGE1_DATA_YAML = f"{dataset.location}/data.yaml"
@@ -46,9 +48,6 @@ model.train(
 PATH = f"runs/{name}/weights/stage1.pt"
 torch.save(model.state_dict(), PATH)
 # ---- Train RT-DETR (Stage 2) ----
-
-rf = Roboflow(api_key)
-project = rf.workspace("my-argiculture").project("leaf_dataset-aejj3")
 version = project.version(4)
 dataset = version.download("yolov9")
 
