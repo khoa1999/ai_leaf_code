@@ -11,7 +11,7 @@ RUN pip install -r requirements.txt
 # ---- Workspace ----
 WORKDIR /workspace
 COPY train_leaf.py .
-COPY hf_token.txt .     # optional fallback if env var not set
+#COPY hf_token.txt .     # optional fallback if env var not set
 
 # ---- Hugging Face / Git credentials (optional) ----
 # Pass tokens during docker run via env vars for safety
