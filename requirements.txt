@@ -1,9 +1,8 @@
 # Use PyTorch wheel index for CUDA 12.1 (applies to following packages)
---index-url https://download.pytorch.org/whl/cu121
+--extra-index-url https://download.pytorch.org/whl/cu121
 torch
 torchvision
-# ultralytics>=8.3.0
-ultralytics
+ultralytics>=8.3.0
 roboflow
 huggingface_hub
 gitpython
