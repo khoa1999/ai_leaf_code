@@ -2,7 +2,8 @@
 --index-url https://download.pytorch.org/whl/cu121
 torch
 torchvision
-ultralytics>=8.3.0
+# ultralytics>=8.3.0
+ultralytics
 roboflow
 huggingface_hub
 gitpython
