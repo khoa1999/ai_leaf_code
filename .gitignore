@@ -28,6 +28,7 @@ wandb/
 
 # Jupyter notebooks
 .ipynb_checkpoints/
+.git
 
 # IDE / OS files
 .vscode/
