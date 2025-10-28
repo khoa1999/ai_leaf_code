@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y git python3 python3-pip && \
 
 # ---- Python deps ----
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # ---- Workspace ----
 WORKDIR /workspace
