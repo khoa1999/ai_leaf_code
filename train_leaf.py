@@ -102,6 +102,7 @@ if not skip_stage1:
         pretrained=True,
         val=True,
         device=device,
+        cache=True
     )
 
     # Ultralytics full checkpoint (this is what YOLO(...) can reload)
@@ -184,6 +185,7 @@ model.train(
     pretrained=True,
     val=True,
     device=device,
+    cache=True
 )
 
 # ---------------- Export model ----------------
