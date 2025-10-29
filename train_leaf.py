@@ -118,7 +118,7 @@ if not stage1_best:
     raise RuntimeError("Stage 2 requires Stage 1 weights. 'stage1_best' is None.")
 
 # ---------------- Stage 2 dataset prep (context-only filtering) ----------------
-version = project.version(4)
+version = project.version(5)
 dataset = version.download("yolov9")
 
 base = dataset.location
@@ -161,7 +161,7 @@ model.train(
     data=STAGE2_DATA_YAML,
     imgsz=1280,
     epochs=epochs,
-    lr0=5e-5,
+    lr0=2e-5,
     optimizer="AdamW",
     cos_lr=True,
     patience=8,
