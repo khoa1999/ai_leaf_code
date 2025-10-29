@@ -192,12 +192,13 @@ model.export(format="onnx", dynamic=True)
 
 # ---------------- Upload to HF (optional) ----------------
 if api:
-    api.upload_folder(
-        folder_path=f"runs/{name_stage1}/weights",
-        repo_id=HF_REPO,
-        repo_type="model",
-        token=HF_TOKEN,
-    )
+    if not skip_stage1:
+        api.upload_folder(
+            folder_path=f"runs/{name_stage1}/weights",
+            repo_id=HF_REPO,
+            repo_type="model",
+            token=HF_TOKEN,
+        )
     # Optionally also upload Stage 2 folder (fine-tuned + onnx)
     api.upload_folder(
         folder_path=f"runs/{name_stage2}/weights",
