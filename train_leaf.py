@@ -179,7 +179,6 @@ model.train(
     scale=0.10,
     shear=0.0,
     perspective=0.0,
-    blur=0.1,
     project="runs",
     name=name_stage2,
     pretrained=True,
